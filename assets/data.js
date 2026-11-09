@@ -1,22 +1,23 @@
 /* ==========================================================================
  * data.js — 静态数据源与接口配置
- * 项目：short_videos 短视频去水印解析接口 · 在线演示站
+ * 项目：视频 / 音乐解析接口 · 在线演示站
  * 说明：所有数据均为静态，不依赖任何构建工具或第三方 CDN。
+ *       示例数据不含任何占位色块；图片一律使用真实公开 URL，加载失败即隐藏。
  * ========================================================================== */
 
 /* --------------------------------------------------------------------------
  * 1. 接口配置（硬编码公共 API）
  * --------------------------------------------------------------------------
- * 端点来自项目官方演示前端 jiuhunwl/shortvideo-html 的生产配置，
- * 后端即 jiuhunwl/short_videos 仓库所部署的公益接口。
- * 已验证：GET 返回 access-control-allow-origin: *，静态站点可跨域直连。
+ * 视频端点来自项目官方演示前端 jiuhunwl/shortvideo-html 的生产配置。
+ * 音乐端点来自 api.bugpk.com 各音乐接口文档页（doc-163_music / doc-qqmusic /
+ * doc-kuwo / doc-qsmusic / doc-music），并已实测 CORS 为 *。
  * ------------------------------------------------------------------------ */
 window.API_CONFIG = Object.freeze({
   primary: 'https://api.bugpk.com/api/short_videos',
   fallbacks: [
     'https://api.bugpk.com/api/short_videos'
   ],
-  // 单平台端点（用于下拉显式指定平台）
+  // 视频单平台端点（用于下拉显式指定平台）
   platforms: {
     douyin:    'https://api.bugpk.com/api/douyin',
     kuaishou:  'https://api.bugpk.com/api/ksjx',
@@ -24,42 +25,81 @@ window.API_CONFIG = Object.freeze({
     xhs:       'https://api.bugpk.com/api/xhsjx',
     toutiao:   'https://api.bugpk.com/api/toutiao'
   },
+  // 音乐端点（按平台区分请求参数，见 app.js buildMusicRequest）
+  music: {
+    netease:   'https://api.bugpk.com/api/163_music',
+    qq:        'https://api.bugpk.com/api/qqmusic',
+    kuwo:      'https://api.bugpk.com/api/kuwo',
+    qishui:    'https://api.bugpk.com/api/qsmusic',
+    aggregate: 'https://api.bugpk.com/api/music'
+  },
   timeout: 25000,
   docs: 'https://github.com/jiuhunwl/short_videos',
+  musicDocs: 'https://github.com/jiuhunwl/music_jx',
   upstream: 'https://api.bugpk.com/'
 });
 
 /* --------------------------------------------------------------------------
- * 2. 平台元数据（解析台下拉 + 支持平台展示区）
+ * 2. 视频解析通道
  * ------------------------------------------------------------------------ */
 window.PLATFORMS = [
-  { id: 'all',      name: '自动识别',   en: 'Auto',        icon: 'spark',  hint: '聚合入口 · 支持 20+ 平台', endpoint: '/api/short_videos', path: 'api/sv.php' },
-  { id: 'douyin',   name: '抖音',       en: 'Douyin',      icon: 'douyin', hint: '视频 / 图集 / 实况 · 原画', endpoint: '/api/douyin',       path: 'api/douyin/douyin.php' },
-  { id: 'kuaishou', name: '快手',       en: 'Kuaishou',    icon: 'kuaishou', hint: '视频 / 图集 / 实况', endpoint: '/api/ksjx',         path: 'api/kuaishou/ksjx.php' },
-  { id: 'xhs',      name: '小红书',     en: 'Xiaohongshu', icon: 'xhs',    hint: '视频 / 图文 / 实况', endpoint: '/api/xhsjx',        path: 'api/xiaohongshu/xhsjx.php' },
-  { id: 'bilibili', name: '哔哩哔哩',   en: 'Bilibili',    icon: 'bili',   hint: '视频 / 分 P / 合集', endpoint: '/api/bilibili',     path: 'api/bilibili/bilibili.php' },
-  { id: 'toutiao',  name: '今日头条',   en: 'Toutiao',     icon: 'toutiao',hint: '视频 / 背景音乐', endpoint: '/api/toutiao',       path: 'api/toutiao.php' }
+  { id: 'all',      name: '自动识别',   en: 'Auto',        hint: '聚合入口 · 支持 20+ 平台', endpoint: '/api/short_videos', path: 'api/sv.php' },
+  { id: 'douyin',   name: '抖音',       en: 'Douyin',      hint: '视频 / 图集 / 实况 · 原画', endpoint: '/api/douyin',       path: 'api/douyin/douyin.php' },
+  { id: 'kuaishou', name: '快手',       en: 'Kuaishou',    hint: '视频 / 图集 / 实况', endpoint: '/api/ksjx',         path: 'api/kuaishou/ksjx.php' },
+  { id: 'xhs',      name: '小红书',     en: 'Xiaohongshu', hint: '视频 / 图文 / 实况', endpoint: '/api/xhsjx',        path: 'api/xiaohongshu/xhsjx.php' },
+  { id: 'bilibili', name: '哔哩哔哩',   en: 'Bilibili',    hint: '视频 / 分 P / 合集', endpoint: '/api/bilibili',     path: 'api/bilibili/bilibili.php' },
+  { id: 'toutiao',  name: '今日头条',   en: 'Toutiao',     hint: '视频 / 背景音乐', endpoint: '/api/toutiao',       path: 'api/toutiao.php' }
 ];
 
-/* 支持平台区（展示用，顺序对齐官方演示站） */
+/* 音乐解析通道（与 API_CONFIG.music 的键一一对应） */
+window.MUSIC_PLATFORMS = [
+  { id: 'netease',   name: '网易云音乐', endpoint: '/api/163_music', hint: '歌曲链接 / 歌曲 ID / 歌名搜索 · 可选音质', docs: 'https://api.bugpk.com/doc-163_music.html' },
+  { id: 'qq',        name: 'QQ 音乐',   endpoint: '/api/qqmusic',   hint: '歌曲链接 / 歌名搜索',                    docs: 'https://api.bugpk.com/doc-qqmusic.html' },
+  { id: 'kuwo',      name: '酷我音乐',  endpoint: '/api/kuwo',      hint: '播放页链接',                            docs: 'https://api.bugpk.com/doc-kuwo.html' },
+  { id: 'qishui',    name: '汽水音乐',  endpoint: '/api/qsmusic',   hint: '分享短链',                              docs: 'https://api.bugpk.com/doc-qsmusic.html' },
+  { id: 'aggregate', name: '音乐聚合',  endpoint: '/api/music',     hint: '歌曲 ID + 平台 + 类型',                  docs: 'https://api.bugpk.com/doc-music.html' }
+];
+
+/* 网易云可选音质（doc-163_music.html level 参数） */
+window.MUSIC_LEVELS = [
+  { id: 'standard', name: '标准音质' },
+  { id: 'exhigh',   name: '极高音质' },
+  { id: 'lossless', name: '无损音质' },
+  { id: 'hires',    name: 'Hi-Res' },
+  { id: 'jyeffect', name: '高清环绕声' },
+  { id: 'sky',      name: '沉浸环绕声' },
+  { id: 'jymaster', name: '超清母带' }
+];
+
+/* 视频支持平台（展示用，顺序对齐官方演示站；纯文字，无占位图标） */
 window.SUPPORTED = [
-  { name: '抖音',       domain: 'douyin.com',       tone: 't1' },
-  { name: '快手',       domain: 'kuaishou.com',     tone: 't2' },
-  { name: 'B 站',       domain: 'bilibili.com',     tone: 't3' },
-  { name: '小红书',     domain: 'xiaohongshu.com',  tone: 't4' },
-  { name: '微博',       domain: 'weibo.com',        tone: 't5' },
-  { name: '微视',       domain: 'weishi.qq.com',    tone: 't6' },
-  { name: '皮皮虾',     domain: 'pipix.com',        tone: 't7' },
-  { name: '皮皮搞笑',   domain: 'pipigx.com',       tone: 't8' },
-  { name: '西瓜视频',   domain: 'ixigua.com',       tone: 't9' },
-  { name: '好看视频',   domain: 'haokan.baidu.com', tone: 't10' },
-  { name: '最右',       domain: 'izuiyou.com',      tone: 't11' },
-  { name: '火山小视频', domain: 'huoshan.com',      tone: 't12' }
+  { name: '抖音',       domain: 'douyin.com' },
+  { name: '快手',       domain: 'kuaishou.com' },
+  { name: 'B 站',       domain: 'bilibili.com' },
+  { name: '小红书',     domain: 'xiaohongshu.com' },
+  { name: '微博',       domain: 'weibo.com' },
+  { name: '微视',       domain: 'weishi.qq.com' },
+  { name: '皮皮虾',     domain: 'pipix.com' },
+  { name: '皮皮搞笑',   domain: 'pipigx.com' },
+  { name: '西瓜视频',   domain: 'ixigua.com' },
+  { name: '好看视频',   domain: 'haokan.baidu.com' },
+  { name: '最右',       domain: 'izuiyou.com' },
+  { name: '火山小视频', domain: 'huoshan.com' }
+];
+
+/* 音乐支持平台（展示用） */
+window.MUSIC_SUPPORTED = [
+  { name: '网易云音乐', domain: 'music.163.com',      note: '链接 / ID / 歌名 · 7 档音质' },
+  { name: 'QQ 音乐',    domain: 'y.qq.com',           note: '歌曲链接 / 歌名' },
+  { name: '酷我音乐',   domain: 'kuwo.cn',            note: '播放页链接' },
+  { name: '汽水音乐',   domain: 'qishui.douyin.com',  note: '分享短链' },
+  { name: '音乐聚合',   domain: 'QQ / 网易云',         note: '歌曲 ID + media + type' }
 ];
 
 /* --------------------------------------------------------------------------
  * 3. API 目录数据（复刻 api.bugpk.com 首页的接口列表结构）
  *    status: online | closed | beta
+ *    channel: music 时「去演示」会切到音乐模式并选中对应通道
  *    calls / date 为演示站展示字段，静态快照，不代表实时统计
  * ------------------------------------------------------------------------ */
 window.API_CATALOG = [
@@ -82,11 +122,11 @@ window.API_CATALOG = [
   { name: '小红书图文解析', cat: '短视频', status: 'online', free: true, desc: '小红书图文笔记原图提取。', endpoint: '/api/xhsjx', calls: '971.5k', hits: '2.1k', date: '2026-11-09' },
   { name: '短视频解析聚合 2', cat: '短视频', status: 'online', free: true, desc: '备用聚合入口，目前支持抖音、小红书、ins、即梦 AI 解析。', endpoint: '/api/short_videos', calls: '2.2M', hits: '715', date: '2026-11-09' },
   { name: '快手图集解析', cat: '短视频', status: 'closed', free: true, desc: '快手图集去水印解析（已关闭，请改用快手聚合解析）。', endpoint: '/api/ksjx', calls: '1.0k', hits: '0', date: '2026-05-27' },
-  { name: '网易云音乐 SVIP 解析', cat: '音乐', status: 'online', free: true, desc: '网易云音乐解析。若获取不到 url 则为账号被风控。', endpoint: 'api/wyy.py', calls: '18.6M', hits: '58.1k', date: '2026-11-09' },
-  { name: '音乐解析聚合', cat: '音乐', status: 'online', free: true, desc: '音乐聚合解析，目前支持 QQ 音乐 / 网易云音乐。', endpoint: '/api/music', calls: '143.7k', hits: '22', date: '2026-11-09' },
-  { name: 'QQ 音乐解析', cat: '音乐', status: 'online', free: true, desc: 'QQ 音乐信息直链解析，账号目前无会员。', endpoint: '/api/qqmusic', calls: '42.3k', hits: '60', date: '2026-11-09' },
-  { name: '汽水音乐解析【官方接口】', cat: '音乐', status: 'online', free: true, desc: '汽水音乐直链及作者解析，走官方接口请求。', endpoint: '/api/qishui', calls: '179.5k', hits: '462', date: '2026-11-09' },
-  { name: '酷我音乐解析', cat: '音乐', status: 'online', free: true, desc: '酷我音乐信息提取。', endpoint: '/api/kuwo', calls: '22.6k', hits: '1', date: '2026-11-09' },
+  { name: '网易云音乐 SVIP 解析', cat: '音乐', channel: 'music', musicId: 'netease', status: 'online', free: true, desc: '网易云音乐解析：歌曲链接 / ID / 歌名搜索，返回歌名、歌手、专辑、封面、直链与歌词，支持 7 档音质。若获取不到 url 则为账号被风控。', endpoint: '/api/163_music', calls: '18.6M', hits: '58.1k', date: '2026-11-09' },
+  { name: '音乐解析聚合', cat: '音乐', channel: 'music', musicId: 'aggregate', status: 'online', free: true, desc: '音乐聚合解析，目前支持 QQ 音乐 / 网易云音乐，按 id + media + type 请求。上游偶发返回非 JSON，页面会展示原始响应。', endpoint: '/api/music', calls: '143.7k', hits: '22', date: '2026-11-09' },
+  { name: 'QQ 音乐解析', cat: '音乐', channel: 'music', musicId: 'qq', status: 'online', free: true, desc: 'QQ 音乐信息直链解析，支持歌曲链接与歌名搜索；账号目前无会员。上游偶发返回非 JSON。', endpoint: '/api/qqmusic', calls: '42.3k', hits: '60', date: '2026-11-09' },
+  { name: '汽水音乐解析【官方接口】', cat: '音乐', channel: 'music', musicId: 'qishui', status: 'online', free: true, desc: '汽水音乐音频直链、歌手、专辑与逐字歌词解析，走官方接口请求。', endpoint: '/api/qsmusic', calls: '179.5k', hits: '462', date: '2026-11-09' },
+  { name: '酷我音乐解析', cat: '音乐', channel: 'music', musicId: 'kuwo', status: 'online', free: true, desc: '酷我音乐信息、封面与歌词提取；付费 / 已下架歌曲会返回 code=1003。', endpoint: '/api/kuwo', calls: '22.6k', hits: '1', date: '2026-11-09' },
   { name: '城市天气查询', cat: '工具', status: 'online', free: true, desc: '查询当前城市的天气情况，支持输入城市名称和 id。', endpoint: '/api/weather', calls: '408.1k', hits: '515', date: '2026-11-09' },
   { name: 'Ip 归属地查询', cat: '工具', status: 'online', free: true, desc: '查询 IP 地理位置及其归属地，精确到市。', endpoint: '/api/ip', calls: '5.5k', hits: '2', date: '2026-11-09' },
   { name: '蓝奏云直链解析', cat: '工具', status: 'online', free: true, desc: '蓝奏云分享链接直链解析。', endpoint: '/api/lanzou', calls: '85.8k', hits: '5', date: '2026-11-09' },
@@ -96,7 +136,7 @@ window.API_CATALOG = [
 ];
 
 /* --------------------------------------------------------------------------
- * 4. v3 契约字段说明（接口文档区）
+ * 4. 视频响应契约 v3 字段说明（接口文档区）
  * ------------------------------------------------------------------------ */
 window.FIELDS = [
   ['code', '整数', '业务状态码：200 成功；400 / 404 / 500 失败'],
@@ -121,25 +161,25 @@ window.FIELDS = [
   ['data.music', '对象', '背景音乐：title / author / url / cover']
 ];
 
+/* 音乐响应归一化字段（前端统一后的结构，跨 5 个通道） */
+window.MUSIC_FIELDS = [
+  ['title', '字符串', '歌曲名；兼容 name / title / songname / albumname'],
+  ['artist', '字符串', '歌手；兼容 ar_name / singer / artistsname / author'],
+  ['album', '字符串', '专辑；兼容 al_name / album / albumname'],
+  ['cover', '字符串', '封面图 URL；兼容 pic / picUrl / picimg / cover'],
+  ['url', '字符串', '音频直链；兼容 url / music_url / play_url'],
+  ['quality', '字符串', '音质档位；兼容 level / quality'],
+  ['size', '字符串', '文件大小；兼容 size / file_size'],
+  ['duration', '数值 / 字符串', '时长；兼容 duration / songTimeMinutes'],
+  ['lyric', '字符串', 'LRC 歌词；兼容 lyric / lrc / lrc_data / lyrics'],
+  ['id', '字符串', '歌曲 ID；用于二次请求直链'],
+  ['extra', '对象', '该通道的其它原始字段（如 video_meta）']
+];
+
 /* --------------------------------------------------------------------------
  * 5. 示例结果（仅用于「载入示例」按钮，不发起网络请求）
- *    结构严格遵循《视频解析统一 JSON 格式 3.0》
+ *    不使用任何生成的占位色块 / 假图；图片均为真实公开 URL。
  * ------------------------------------------------------------------------ */
-function svgPoster(label, c1, c2) {
-  const svg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 720 960">' +
-    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
-    '<stop offset="0%" stop-color="' + c1 + '"/><stop offset="100%" stop-color="' + c2 + '"/>' +
-    '</linearGradient></defs>' +
-    '<rect width="720" height="960" fill="url(#g)"/>' +
-    '<circle cx="360" cy="420" r="150" fill="rgba(255,255,255,.14)"/>' +
-    '<circle cx="360" cy="420" r="96" fill="rgba(255,255,255,.16)"/>' +
-    '<text x="360" y="440" text-anchor="middle" font-family="Arial,sans-serif" font-size="46" font-weight="700" fill="rgba(255,255,255,.92)">DEMO</text>' +
-    '<text x="360" y="820" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" fill="rgba(255,255,255,.8)">' + label + '</text>' +
-    '</svg>';
-  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-}
-
 window.DEMO_RESULT = {
   code: 200,
   msg: '解析成功',
@@ -147,8 +187,8 @@ window.DEMO_RESULT = {
     type: 'video',
     title: '示例数据 · 湖畔日落延时摄影',
     desc: '这是一条用于演示页面展示效果的示例数据，不会发起真实解析请求。#延时摄影 #日落',
-    author: { name: '演示账号', id: 'demo_0001', avatar: svgPoster('A', '#0d9488', '#0f172a') },
-    cover: svgPoster('COVER', '#0ea5e9', '#0d9488'),
+    author: { name: '演示账号', id: 'demo_0001', avatar: '' },
+    cover: '',
     url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
     quality: 'original',
     duration: 30.06,
@@ -159,7 +199,7 @@ window.DEMO_RESULT = {
     video_backup: ['https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'],
     images: [],
     live_photo: [],
-    music: { title: '示例背景音乐', author: '演示音频', url: '', cover: svgPoster('BGM', '#6366f1', '#0d9488') },
+    music: { title: '示例背景音乐', author: '演示音频', url: '', cover: '' },
     video_id: 'v0200fg10000demo'
   },
   __demo: true,
@@ -171,10 +211,10 @@ window.DEMO_IMAGE_RESULT = {
   msg: '解析成功',
   data: {
     type: 'image',
-    title: '示例图集 · 城市漫步',
-    desc: '用于演示图集渲染效果的示例数据。#城市 #街拍',
-    author: { name: '演示账号', id: 'demo_0002', avatar: svgPoster('A', '#f59e0b', '#0f172a') },
-    cover: svgPoster('COVER', '#f59e0b', '#ef4444'),
+    title: '示例图集 · 公开专辑封面',
+    desc: '图集渲染演示，图片取自音乐平台公开封面 URL，无占位色块。#图集 #原图',
+    author: { name: '演示账号', id: 'demo_0002', avatar: '' },
+    cover: '',
     url: null,
     quality: 'original',
     duration: null,
@@ -184,10 +224,10 @@ window.DEMO_IMAGE_RESULT = {
     publish_time: '2025-12-23 23:25:30',
     video_backup: [],
     images: [
-      svgPoster('IMG 01', '#0ea5e9', '#0d9488'),
-      svgPoster('IMG 02', '#8b5cf6', '#ec4899'),
-      svgPoster('IMG 03', '#f59e0b', '#ef4444'),
-      svgPoster('IMG 04', '#10b981', '#0ea5e9')
+      'https://p4.music.126.net/yD9vbpuILH-tqNRIaP640g==/109951163038292176.jpg',
+      'https://p4.music.126.net/81BsxxhomJ4aJZYvEbyPkw==/109951165671182684.jpg',
+      'https://p3.music.126.net/8D2Pd7EuvGboMyE2xWc47A==/109951172453712025.jpg',
+      'https://p4.music.126.net/pleQjKOI26fSenkUGipDLw==/109951166537300832.jpg'
     ],
     live_photo: [],
     music: { title: '', author: '', url: '', cover: '' },
@@ -195,4 +235,36 @@ window.DEMO_IMAGE_RESULT = {
   },
   __demo: true,
   __source: '内置示例数据（未调用接口）'
+};
+
+/* 音乐示例：网易云 /api/163_music?type=json 的裸 JSON 结构（真实字段，歌词精简） */
+window.DEMO_MUSIC_RESULT = {
+  status: 200,
+  name: '若把你',
+  ar_name: 'Kirsty刘瑾睿',
+  al_name: '若把你',
+  pic: 'https://p3.music.126.net/M877M2-VhWZiLPVFORf9iQ==/109951163401482434.jpg',
+  url: 'https://music.163.com/song/media/outer/url?id=865632948.mp3',
+  size: '0B',
+  level: '标准音质',
+  lyric: '[00:00.000] 作词 : Kirsty刘瑾睿\n[00:01.000] 作曲 : Kirsty刘瑾睿\n[00:18.840]落叶无归根 单丝不成线\n[00:27.710]无所寄托 亦无心流浪\n[00:36.570]你把红豆赠我不如写我一首歌\n[00:44.240]落款你的名字 工整又好看\n[00:52.470]若把你比作歌\n[00:57.530]你便是那高山流水',
+  tlyric: '',
+  __demo: true,
+  __source: '内置示例数据 · 网易云 /api/163_music?type=json 结构（未调用接口）'
+};
+
+/* 音乐示例：网易云 /api/163_music?type=search 的歌曲列表结构 */
+window.DEMO_MUSIC_SEARCH_RESULT = {
+  code: 200,
+  msg: '搜索成功',
+  data: {
+    songs: [
+      { id: 865632948, name: '若把你', artists: 'Kirsty刘瑾睿', album: '若把你', picUrl: 'https://p3.music.126.net/M877M2-VhWZiLPVFORf9iQ==/109951163401482434.jpg', duration: 205000 },
+      { id: 509781655, name: '想你就写信 (Live)', artists: '周杰伦/李硕/张鑫', album: '周杰伦地表最强世界巡回演唱会', picUrl: 'https://p4.music.126.net/yD9vbpuILH-tqNRIaP640g==/109951163038292176.jpg', duration: 234880 },
+      { id: 5257138, name: '屋顶', artists: '周杰伦/温岚/吴宗宪', album: '找自己', picUrl: 'https://p4.music.126.net/81BsxxhomJ4aJZYvEbyPkw==/109951165671182684.jpg', duration: 298000 }
+    ],
+    total: 300
+  },
+  __demo: true,
+  __source: '内置示例数据 · 网易云 /api/163_music?type=search 结构（未调用接口）'
 };

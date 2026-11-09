@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
-  <title>短视频去水印解析 · 在线演示 | short_videos API</title>
-  <meta name="description" content="基于 jiuhunwl/short_videos 开源解析接口的在线演示站：粘贴分享链接即可解析无水印视频、图集与实况，并附完整 API 目录与 v3 契约文档。">
-  <meta name="keywords" content="短视频去水印,抖音解析,快手解析,小红书解析,B站解析,图集解析,无水印直链,short_videos,API 演示">
+  <title>视频 · 音乐解析 在线演示 | short_videos & music API</title>
+  <meta name="description" content="视频与音乐解析在线演示站：粘贴短视频分享链接即可解析无水印视频、图集、实况与背景音乐；粘贴音乐链接或歌曲 ID 可获取歌曲直链、封面、音质与歌词。附完整 API 目录与契约文档。">
+  <meta name="keywords" content="短视频去水印,视频解析,音乐解析,网易云解析,QQ音乐解析,汽水音乐,抖音解析,图集解析,无水印直链,歌词,short_videos,API 演示">
   <link rel="canonical" href="./">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230d9488'/%3E%3Cpath d='M25 19l22 13-22 13z' fill='white'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./assets/style.css">
@@ -38,6 +38,8 @@
   <symbol id="i-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
   <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  <symbol id="i-lyric" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="11" x2="16" y2="11"/><line x1="4" y1="16" x2="18" y2="16"/><line x1="4" y1="21" x2="12" y2="21"/></symbol>
 </svg>
 
 <!-- 导航 -->
@@ -45,7 +47,7 @@
   <div class="wrap nav-inner">
     <a class="brand" href="#top">
       <span class="brand-mark"><svg><use href="#i-play"/></svg></span>
-      <span>SV Parser<small>SHORT VIDEOS API DEMO</small></span>
+      <span>VM Parser<small>VIDEO &amp; MUSIC API DEMO</small></span>
     </a>
     <nav class="nav-links">
       <a href="#parser">在线解析</a>
@@ -66,17 +68,18 @@
 <!-- Hero -->
 <section class="hero" id="top">
   <div class="wrap hero-inner">
-    <span class="eyebrow"><span class="dot"></span> OPEN SOURCE · MIT · API v3</span>
-    <h1>短视频去水印解析<br><span class="grad">在线演示与接口目录</span></h1>
+    <span class="eyebrow"><span class="dot"></span> OPEN SOURCE · MIT · VIDEO + MUSIC</span>
+    <h1>视频 · 音乐解析<br><span class="grad">在线演示与接口目录</span></h1>
     <p class="lead">
-      基于 <a href="https://github.com/jiuhunwl/short_videos" target="_blank" rel="noopener noreferrer">jiuhunwl/short_videos</a> 开源解析接口构建。
-      粘贴任意平台分享链接，即可获取无水印视频直链、图集原图、实况 Live Photo 与完整元数据；
-      响应遵循《视频解析统一 JSON 格式 3.0》契约。
+      基于 <a href="https://github.com/jiuhunwl/short_videos" target="_blank" rel="noopener noreferrer">jiuhunwl/short_videos</a> 与
+      <a href="https://github.com/jiuhunwl/music_jx" target="_blank" rel="noopener noreferrer">music_jx</a> 公共接口构建。
+      <b>视频通道</b>解析无水印直链、图集原图、实况 Live Photo 与背景音乐；
+      <b>音乐通道</b>解析歌曲直链、封面、音质档位与同步歌词，覆盖网易云、QQ 音乐、酷我、汽水音乐。
     </p>
     <div class="hero-stats">
-      <div class="hstat"><b>20+</b><span>支持平台</span></div>
+      <div class="hstat"><b>20+</b><span>视频平台</span></div>
+      <div class="hstat"><b>5</b><span>音乐通道</span></div>
       <div class="hstat"><b id="statApiCount">30</b><span>收录接口</span></div>
-      <div class="hstat"><b>0</b><span>构建依赖</span></div>
       <div class="hstat"><b>100%</b><span>静态托管</span></div>
     </div>
   </div>
@@ -88,15 +91,25 @@
     <div class="sec-head">
       <span class="kicker">01 / LIVE PARSER</span>
       <h2>在线解析演示台</h2>
-      <p>请求直接发往公共解析接口，浏览器端渲染返回结果。支持粘贴整段分享文案，系统会自动提取其中的链接。</p>
+      <p>视频与音乐双通道，请求直接发往公共解析接口并在浏览器端渲染。视频支持整段分享文案自动提取链接；音乐支持歌曲链接、纯 ID 或歌名搜索。</p>
     </div>
 
     <div class="card parser">
+      <div class="mode-tabs" id="modeTabs" role="tablist">
+        <button class="mode-tab active" data-mode="video" type="button" role="tab">
+          <svg><use href="#i-video"/></svg> 视频 / 图集解析
+        </button>
+        <button class="mode-tab" data-mode="music" type="button" role="tab">
+          <svg><use href="#i-music"/></svg> 音乐解析
+        </button>
+        <span class="mode-note" id="modeNote">短视频 · 图集 · 实况 · 背景音乐</span>
+      </div>
+
       <div class="parser-top">
-        <div class="parser-title"><span class="badge-num">01</span> 粘贴分享链接</div>
+        <div class="parser-title"><span class="badge-num">01</span> <span id="inputTitle">粘贴分享链接</span></div>
         <div class="api-status">
           <span class="state"><span class="dot"></span> 接口在线</span>
-          <span class="url mono">GET /api/short_videos?url=…</span>
+          <span class="url mono" id="endpointHint">GET /api/short_videos?url=…</span>
         </div>
       </div>
       <div class="parser-body">
@@ -107,6 +120,10 @@
                    placeholder="粘贴分享链接或整段分享文案，例如：https://v.douyin.com/xxxx/">
             <button class="clear" id="clearInput" type="button" title="清空" aria-label="清空"><svg><use href="#i-x"/></svg></button>
           </label>
+          <label class="level-select hidden" id="levelBox" for="levelSelect">
+            <span>音质</span>
+            <select id="levelSelect"></select>
+          </label>
           <button class="btn-primary" id="parseBtn" type="button">
             <svg><use href="#i-zap"/></svg><span>开始解析</span>
           </button>
@@ -115,13 +132,27 @@
         <div class="chips" id="platformChips">
           <span class="label">解析通道</span>
           <span class="spacer"></span>
-          <button class="link-btn" id="demoVideoBtn" type="button">载入视频示例</button>
-          <button class="link-btn" id="demoImageBtn" type="button">载入图集示例</button>
+          <span class="demo-group video-only" id="videoDemoGroup">
+            <button class="link-btn" id="demoVideoBtn" type="button">载入视频示例</button>
+            <button class="link-btn" id="demoImageBtn" type="button">载入图集示例</button>
+          </span>
+          <span class="demo-group hidden" id="musicDemoGroup">
+            <button class="link-btn" id="demoMusicBtn" type="button">载入音乐示例</button>
+            <button class="link-btn" id="demoMusicSearchBtn" type="button">载入搜索示例</button>
+          </span>
+        </div>
+
+        <div class="quick-links hidden" id="musicQuickLinks">
+          <span class="ql-label">试试：</span>
+          <button type="button" class="ql" data-fill="https://music.163.com/song?id=865632948">网易云歌曲链接</button>
+          <button type="button" class="ql" data-fill="865632948">网易云歌曲 ID</button>
+          <button type="button" class="ql" data-fill="青花瓷">歌名搜索</button>
+          <button type="button" class="ql" data-fill="https://qishui.douyin.com/s/ia2T2aMo/">汽水音乐短链</button>
         </div>
 
         <div class="hint-line">
           <svg><use href="#i-info"/></svg>
-          <span>示例按钮载入的是内置静态数据，用于预览界面效果，不会发起真实解析请求。实际解析请使用真实分享链接。</span>
+          <span id="hintText">示例按钮载入的是内置静态数据，用于预览界面效果，不会发起真实解析请求。实际解析请使用真实分享链接。</span>
         </div>
 
         <div id="noticeHost"></div>
@@ -132,6 +163,7 @@
             <h3>解析结果 <span class="tag" id="resultTag">VIDEO</span></h3>
             <div class="muted" style="font-size:12px" id="resultSource"></div>
           </div>
+          <div id="musicListHost"></div>
           <div class="result-grid">
             <div class="media-box" id="mediaBox"></div>
             <div class="info-panel" id="infoPanel"></div>
@@ -140,7 +172,7 @@
             <div class="json-bar">
               <svg style="width:15px;height:15px;color:var(--accent)"><use href="#i-code"/></svg>
               <span>原始响应 JSON</span>
-              <span class="fname">v3 contract</span>
+              <span class="fname" id="jsonFname">v3 contract</span>
               <span class="spacer"></span>
               <button class="btn-sm" id="copyJsonBtn" type="button"><svg><use href="#i-copy"/></svg> 复制</button>
               <button class="btn-sm" id="downloadJsonBtn" type="button"><svg><use href="#i-download"/></svg> 下载</button>
@@ -159,11 +191,14 @@
     <div class="sec-head">
       <span class="kicker">02 / COVERAGE</span>
       <h2>支持平台</h2>
-      <p>聚合入口自动识别来源平台；亦可手动指定单平台端点以缩短链路。抖音支持原画 302 解析，视频 / 图集 / 实况三类内容统一契约输出。</p>
+      <p>视频与音乐各自独立通道：视频聚合入口自动识别来源平台，亦可手动指定单平台端点；音乐按平台选择端点并自动适配请求参数与响应格式。</p>
     </div>
+    <h3 class="sub-head"><span class="sub-dot"></span> 视频 / 短视频平台</h3>
     <div class="platform-grid" id="platformGrid"></div>
+    <h3 class="sub-head" style="margin-top:26px"><span class="sub-dot music"></span> 音乐平台</h3>
+    <div class="music-platform-grid" id="musicPlatformGrid"></div>
     <div class="note-box" style="margin-top:18px">
-      <strong>关于可用性的说明：</strong>各平台解析能力依赖上游接口，平台方策略调整可能导致个别通道临时失效；抖音主页批量解析需要登录 Cookie，属独立接口。此页为技术演示，不保证任何平台的长期可用性。
+      <strong>关于可用性的说明：</strong>各平台解析能力依赖上游公益接口，平台方策略调整可能导致个别通道临时失效；抖音主页批量解析需要登录 Cookie，属独立接口；部分音乐接口上游偶发返回非 JSON，本站会原样展示响应并给出提示。此页为技术演示，不保证任何平台的长期可用性。
     </div>
   </div>
 </section>
@@ -197,15 +232,24 @@
     <div class="sec-head">
       <span class="kicker">04 / DOCUMENTATION</span>
       <h2>接口文档</h2>
-      <p>请求与响应契约来自 <a href="https://github.com/jiuhunwl/short_videos" target="_blank" rel="noopener noreferrer">short_videos</a> 仓库的《视频解析统一 JSON 格式 3.0》规范。</p>
+      <p>视频契约来自 <a href="https://github.com/jiuhunwl/short_videos" target="_blank" rel="noopener noreferrer">short_videos</a> 仓库的《视频解析统一 JSON 格式 3.0》；音乐参数来自 <a href="https://api.bugpk.com/" target="_blank" rel="noopener noreferrer">BugPk-Api</a> 各音乐接口文档页，前端统一归一化后渲染。</p>
     </div>
 
     <div class="arch-flow">
+      <span class="arch-node hl">视频</span>
       <span class="arch-node">浏览器 / GitHub Pages</span><span class="arch-arrow">→</span>
-      <span class="arch-node hl">GET api.bugpk.com/api/short_videos</span><span class="arch-arrow">→</span>
+      <span class="arch-node hl">GET /api/short_videos</span><span class="arch-arrow">→</span>
       <span class="arch-node">聚合分发 sv.php</span><span class="arch-arrow">→</span>
       <span class="arch-node">单平台 PHP 解析器</span><span class="arch-arrow">→</span>
       <span class="arch-node">JSON v3 响应</span>
+    </div>
+    <div class="arch-flow">
+      <span class="arch-node hl">音乐</span>
+      <span class="arch-node">浏览器 / GitHub Pages</span><span class="arch-arrow">→</span>
+      <span class="arch-node hl">GET /api/163_music 等</span><span class="arch-arrow">→</span>
+      <span class="arch-node">歌曲链接 / ID / 歌名</span><span class="arch-arrow">→</span>
+      <span class="arch-node">平台侧接口</span><span class="arch-arrow">→</span>
+      <span class="arch-node">前端统一归一化</span>
     </div>
 
     <div class="doc-grid">
@@ -230,6 +274,7 @@
           <button class="tab active" data-tab="curl" type="button">cURL</button>
           <button class="tab" data-tab="js" type="button">JavaScript</button>
           <button class="tab" data-tab="py" type="button">Python</button>
+          <button class="tab" data-tab="music" type="button">音乐接口</button>
         </div>
         <div class="code-block">
           <button class="copy" id="copyCodeBtn" type="button">复制</button>
@@ -257,6 +302,48 @@
         </div>
       </div>
     </div>
+
+    <h3 class="sub-head" style="margin-top:30px"><span class="sub-dot music"></span> 音乐接口规范</h3>
+    <div class="doc-grid">
+      <div class="card doc-card">
+        <h3><span class="idx">MUSIC REQ</span> 通道与请求参数</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>通道</th><th>端点</th><th>主要参数</th></tr></thead>
+            <tbody>
+              <tr><td>网易云音乐</td><td><code>/api/163_music</code></td><td><code>type=json</code> + <code>url</code> / <code>ids</code> + <code>level</code>；歌名用 <code>type=search&amp;s=</code></td></tr>
+              <tr><td>QQ 音乐</td><td><code>/api/qqmusic</code></td><td><code>url</code> + <code>type=song</code>；<code>name</code> + <code>type=search</code></td></tr>
+              <tr><td>酷我音乐</td><td><code>/api/kuwo</code></td><td><code>url</code> · 播放页链接</td></tr>
+              <tr><td>汽水音乐</td><td><code>/api/qsmusic</code></td><td><code>url</code> · 分享短链</td></tr>
+              <tr><td>音乐聚合</td><td><code>/api/music</code></td><td><code>id</code> + <code>media=tencent/netease</code> + <code>type=song</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="steps" style="margin-top:16px">
+          <div class="step"><p><b>输入自适应：</b>粘贴歌曲链接时原样传递；纯数字按歌曲 ID 处理；其余文本按歌名搜索。歌名搜索返回候选列表，点击任一结果会二次请求直链。</p></div>
+          <div class="step"><p><b>音质：</b>网易云通道可选 <code>standard / exhigh / lossless / hires / jyeffect / sky / jymaster</code>，高音质能否返回取决于上游账号权限。</p></div>
+          <div class="step"><p><b>跨域：</b>五个音乐端点均返回 <code>Access-Control-Allow-Origin: *</code>，静态页可直接调用。</p></div>
+        </div>
+      </div>
+
+      <div class="card doc-card">
+        <h3><span class="idx">MUSIC RES</span> 前端归一化字段</h3>
+        <p style="font-size:12.5px;color:var(--muted);margin:-4px 0 12px">五个通道的响应结构差异较大（裸 JSON / <code>code+msg+data</code> / <code>code+message+data:null</code> / 歌曲列表），前端统一为下列字段后再渲染播放器、歌词与歌曲信息。</p>
+        <div class="table-scroll" style="max-height:330px;overflow-y:auto">
+          <table>
+            <thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+            <tbody id="musicFieldsBody"></tbody>
+          </table>
+        </div>
+        <h3 style="margin-top:20px"><span class="idx">CODE</span> 音乐常见状态</h3>
+        <div class="status-list">
+          <div class="status-item"><code>200</code><span>解析成功（网易云裸响应用 <code>status:200</code>）</span></div>
+          <div class="status-item"><code>1003</code><span>酷我：付费内容或歌曲已下线</span></div>
+          <div class="status-item"><code>400</code><span>缺少必填参数（如 163 的 type）</span></div>
+          <div class="status-item"><code>error</code><span>上游返回非 JSON，页面保留原始响应文本</span></div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -266,7 +353,7 @@
     <div class="sec-head">
       <span class="kicker">05 / DEPLOYMENT</span>
       <h2>部署与后端说明</h2>
-      <p>GitHub Pages 仅托管静态资源，本页所有解析请求均在浏览器端直连公共接口。若需私有化后端，可在自有 PHP 主机或 Cloudflare Workers 上部署同一仓库。</p>
+      <p>GitHub Pages 仅托管静态资源，本页所有视频与音乐解析请求均在浏览器端直连公共接口。若需私有化后端，可在自有 PHP 主机或 Cloudflare Workers 上部署同一仓库。</p>
     </div>
     <div class="doc-grid">
       <div class="card doc-card">
@@ -275,7 +362,7 @@
           <div class="step"><p><b>PHP 主机</b>：将 <code>short_videos</code> 仓库上传至站点根目录，PHP 8.0+ 并启用 curl / json 扩展，无需 Composer。访问 <code>/api/sv.php?url=…</code> 即可。</p></div>
           <div class="step"><p><b>Cloudflare Workers</b>：部署 <code>api/douyin-cloudflare workers/workers.js</code>（抖音整合版），可获得边缘网络与更稳定的 CORS 行为。</p></div>
           <div class="step"><p><b>403 代理</b>：部署 <code>cf_sv_proxy/worker.js</code>，用于转发带防盗链的视频直链。</p></div>
-          <div class="step"><p><b>切换前端端点</b>：修改 <code>assets/data.js</code> 中 <code>API_CONFIG.primary</code> 与 <code>API_CONFIG.platforms</code>，重新提交即生效。</p></div>
+          <div class="step"><p><b>切换前端端点</b>：修改 <code>assets/data.js</code> 中 <code>API_CONFIG.primary</code>、<code>API_CONFIG.platforms</code> 与 <code>API_CONFIG.music</code>，重新提交即生效；音乐请求参数在 <code>app.js</code> 的 <code>buildMusicRequest()</code> 中适配。</p></div>
         </div>
       </div>
       <div class="card doc-card">
@@ -300,12 +387,13 @@
     <div class="footer-grid">
       <div>
         <h4>关于本站</h4>
-        <p>短视频去水印解析接口在线演示站。前端为纯静态实现，接口能力由开源项目 <b>jiuhunwl/short_videos</b> 与公益 API 平台提供，二者均为 MIT 许可。</p>
+        <p>视频与音乐解析接口在线演示站。前端为纯静态实现，视频接口能力由开源项目 <b>jiuhunwl/short_videos</b>、音乐接口由 <b>jiuhunwl/music_jx</b> 与公益 API 平台提供，均为 MIT 许可。</p>
       </div>
       <div>
         <h4>项目链接</h4>
         <ul>
           <li><a href="https://github.com/jiuhunwl/short_videos" target="_blank" rel="noopener noreferrer">后端源码 · short_videos ↗</a></li>
+          <li><a href="https://github.com/jiuhunwl/music_jx" target="_blank" rel="noopener noreferrer">音乐解析 · music_jx ↗</a></li>
           <li><a href="https://github.com/jiuhunwl/shortvideo-html" target="_blank" rel="noopener noreferrer">官方前端 · shortvideo-html ↗</a></li>
           <li><a href="https://sv.bugpk.com/" target="_blank" rel="noopener noreferrer">官方演示站 · sv.bugpk.com ↗</a></li>
           <li><a href="https://api.bugpk.com/" target="_blank" rel="noopener noreferrer">接口平台 · api.bugpk.com ↗</a></li>
@@ -316,6 +404,8 @@
         <ul>
           <li><a href="https://github.com/jiuhunwl/short_videos/blob/main/docs/%E8%A7%86%E9%A2%91%E8%A7%A3%E6%9E%90%E7%BB%9F%E4%B8%80JSON%E6%A0%BC%E5%BC%8F3.0.md" target="_blank" rel="noopener noreferrer">统一 JSON 格式 3.0（中文）↗</a></li>
           <li><a href="https://github.com/jiuhunwl/short_videos/blob/main/docs/Unified-Video-Parsing-JSON-Format-3.0.md" target="_blank" rel="noopener noreferrer">Unified JSON Format 3.0 ↗</a></li>
+          <li><a href="https://api.bugpk.com/doc-163_music.html" target="_blank" rel="noopener noreferrer">网易云音乐接口文档 ↗</a></li>
+          <li><a href="https://api.bugpk.com/doc-music.html" target="_blank" rel="noopener noreferrer">音乐解析聚合文档 ↗</a></li>
           <li><a href="https://github.com/jiuhunwl/short_videos/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License ↗</a></li>
         </ul>
       </div>
@@ -324,7 +414,7 @@
       免责声明：本站仅提供技术研究与接口示例，代码与页面仅用于学习交流和技术测试，不得用于任何非法用途。解析出的短视频、图集、音乐及相关素材，其著作权、邻接权及其他合法权益均归原平台及作品权利人所有。使用者应自行确保已获得必要授权，并在合法、合规、合理范围内使用相关内容；因使用本站产生的任何直接或间接后果，由使用者自行承担。
     </div>
     <div class="footer-bottom">
-      <span>© 2026 SV Parser Demo · Built for GitHub Pages · Zero dependencies</span>
+      <span>© 2026 VM Parser Demo · Video &amp; Music · Built for GitHub Pages · Zero dependencies</span>
       <span>Data snapshot: 2026-11-09</span>
     </div>
   </div>
