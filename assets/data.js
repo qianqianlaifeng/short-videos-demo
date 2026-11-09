@@ -43,11 +43,11 @@ window.API_CONFIG = Object.freeze({
  * 2. 视频解析通道
  * ------------------------------------------------------------------------ */
 window.PLATFORMS = [
-  { id: 'all',      name: '自动识别',   en: 'Auto',        hint: '聚合入口 · 支持 20+ 平台', endpoint: '/api/short_videos', path: 'api/sv.php' },
+  { id: 'all',      name: '自动识别',   en: 'Auto',        hint: '聚合入口 · 支持 20+ 平台；B 站链接自动改走专用端点', endpoint: '/api/short_videos', path: 'api/sv.php' },
   { id: 'douyin',   name: '抖音',       en: 'Douyin',      hint: '视频 / 图集 / 实况 · 原画', endpoint: '/api/douyin',       path: 'api/douyin/douyin.php' },
   { id: 'kuaishou', name: '快手',       en: 'Kuaishou',    hint: '视频 / 图集 / 实况', endpoint: '/api/ksjx',         path: 'api/kuaishou/ksjx.php' },
   { id: 'xhs',      name: '小红书',     en: 'Xiaohongshu', hint: '视频 / 图文 / 实况', endpoint: '/api/xhsjx',        path: 'api/xiaohongshu/xhsjx.php' },
-  { id: 'bilibili', name: '哔哩哔哩',   en: 'Bilibili',    hint: '视频 / 分 P / 合集', endpoint: '/api/bilibili',     path: 'api/bilibili/bilibili.php' },
+  { id: 'bilibili', name: '哔哩哔哩',   en: 'Bilibili',    hint: 'B 站专用 · 视频 / 分 P / 合集；聚合端点对 B 站无效', endpoint: '/api/bilibili',     path: 'api/bilibili/bilibili.php' },
   { id: 'toutiao',  name: '今日头条',   en: 'Toutiao',     hint: '视频 / 背景音乐', endpoint: '/api/toutiao',       path: 'api/toutiao.php' }
 ];
 
@@ -103,11 +103,11 @@ window.MUSIC_SUPPORTED = [
  *    calls / date 为演示站展示字段，静态快照，不代表实时统计
  * ------------------------------------------------------------------------ */
 window.API_CATALOG = [
-  { name: '短视频去水印解析【聚合】', cat: '短视频', status: 'online', free: true, desc: '聚合入口，自动识别平台。支持抖音、快手、小红书、bilibili、油管、TikTok、西瓜视频、好看视频、微视、梨视频、A 站、知乎、绿洲、美拍、虎牙、ins、豆包、即梦 AI、视频号等 20+ 平台。', endpoint: '/api/short_videos', calls: '35.1M', hits: '95.2k', date: '2026-11-09' },
+  { name: '短视频去水印解析【聚合】', cat: '短视频', status: 'online', free: true, desc: '聚合入口，自动识别平台。支持抖音、快手、小红书、油管、TikTok、西瓜视频、好看视频、微视、梨视频、A 站、知乎、绿洲、美拍、虎牙、ins、豆包、即梦 AI、视频号等 20+ 平台。注意：实测该端点对 bilibili 链接一律返回解析失败，本站已自动把 B 站链接改走 /api/bilibili 专用端点。', endpoint: '/api/short_videos', calls: '35.1M', hits: '95.2k', date: '2026-11-09' },
   { name: '抖音无水印解析【原画】', cat: '短视频', status: 'online', free: true, desc: '抖音去水印解析，支持图文、短视频和实况解析，支持分享短链接；自动通过 vid 302 解析原画质量。', endpoint: '/api/douyin', calls: '12.6M', hits: '37.1k', date: '2026-11-09' },
   { name: '小红书解析', cat: '短视频', status: 'online', free: true, desc: '无水印解析小红书视频内容，返回封面、作者、时长与直链。', endpoint: '/api/xhsjx', calls: '5.3M', hits: '13.7k', date: '2026-11-09' },
   { name: '今日头条去水印解析', cat: '短视频', status: 'online', free: true, desc: '今日头条短视频去水印解析，含背景音乐与封面信息。', endpoint: '/api/toutiao', calls: '3.1M', hits: '573', date: '2026-11-09' },
-  { name: 'bilibili 解析', cat: '短视频', status: 'online', free: true, desc: '仅支持 bilibili 短视频，画质 1080，支持合集与分 P 列表。', endpoint: '/api/bilibili', calls: '2.5M', hits: '1.1k', date: '2026-11-09' },
+  { name: 'bilibili 解析', cat: '短视频', status: 'online', free: true, desc: 'B 站专用端点，返回 1080 直链，支持合集与分 P，兼容 b23.tv 短链、移动端链接与整段分享文案。本站「自动识别」检测到 B 站域名即自动改走此端点；纯 BV 号也会自动补全为播放页链接。', endpoint: '/api/bilibili', calls: '2.5M', hits: '1.1k', date: '2026-11-09' },
   { name: '快手聚合解析【支持实况】', cat: '短视频', status: 'online', free: true, desc: '快手去水印聚合解析，支持图集、视频、实况三类内容。', endpoint: '/api/ksjx', calls: '1.3M', hits: '282', date: '2026-11-09' },
   { name: '即梦去水印解析', cat: 'AI 生成', status: 'online', free: true, desc: '即梦 AI 视频去水印，支持隐藏和未发布的作品。', endpoint: '/api/jimengai', calls: '2.2M', hits: '1.4k', date: '2026-11-09' },
   { name: '豆包视频去水印解析', cat: 'AI 生成', status: 'online', free: true, desc: '豆包短视频解析，返回 AI 生成视频的无水印直链。', endpoint: '/api/doubao', calls: '1.3M', hits: '5.4k', date: '2026-11-09' },

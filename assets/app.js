@@ -180,10 +180,14 @@
     return hit ? hit.name : '自动识别';
   }
 
-  function updateEndpointHint() {
+  function updateEndpointHint(text) {
     const p = (mode === 'music' ? window.MUSIC_PLATFORMS : window.PLATFORMS)
       .find(function (x) { return x.id === (mode === 'music' ? selectedMusic : selectedPlatform); });
-    const ep = p ? p.endpoint : '/api/short_videos';
+    let ep = p ? p.endpoint : '/api/short_videos';
+    const raw = text === undefined ? ($('#urlInput') ? $('#urlInput').value : '') : text;
+    if (mode === 'video' && selectedPlatform === 'all' && isBilibiliUrl(normalizeShareUrl(raw))) {
+      ep = '/api/bilibili';   // 自动识别时 B 站改走专用端点，顶部提示同步
+    }
     $('#endpointHint').textContent = 'GET ' + ep + (mode === 'music' ? '?…' : '?url=…');
     $('.api-status .url').title = 'https://api.bugpk.com' + ep;
   }
@@ -244,10 +248,11 @@
       : '粘贴分享链接或整段分享文案，例如：https://v.douyin.com/xxxx/';
     $('#hintText').textContent = isMusic
       ? '示例按钮载入内置数据，不发起网络请求。真实解析时：链接或 ID 直接取直链，输入歌名走搜索；搜索结果点击任一歌曲即获取直链。'
-      : '示例按钮载入的是内置静态数据，用于预览界面效果，不会发起真实解析请求。实际解析请使用真实分享链接。';
+      : '示例按钮载入内置静态数据，不发起网络请求；「试试」里是真实链接，会发起解析。B 站链接自动改走 /api/bilibili 专用端点（聚合端点对 B 站无效）。';
 
     $('#videoDemoGroup').classList.toggle('hidden', isMusic);
     $('#musicDemoGroup').classList.toggle('hidden', !isMusic);
+    $('#videoQuickLinks').classList.toggle('hidden', isMusic);
     $('#musicQuickLinks').classList.toggle('hidden', !isMusic);
     $('#levelBox').classList.toggle('hidden', !(isMusic && selectedMusic === 'netease'));
     $('#jsonFname').textContent = isMusic ? 'raw music response' : 'v3 contract';
@@ -669,7 +674,8 @@
     $('#mediaBox').style.padding = '';
     $('#infoPanel').innerHTML = '';
 
-    const hint = d.hint || '请确认链接有效、内容未下架或未被设为私密；也可在上方手动切换其他解析通道，或稍后重试。公益接口可能临时限流或维护。';
+    const hint = d.hint || (meta && meta.failHint) ||
+      '请确认链接有效、内容未下架或未被设为私密；也可在上方手动切换其他解析通道，或稍后重试。公益接口可能临时限流或维护。';
     $('#failPanel').innerHTML =
       '<div class="fail-icon">' + ICON('alert') + '</div>' +
       '<div class="fail-body">' +
@@ -708,7 +714,8 @@
     const r = normalize(payload);
     if (isVideoFailure(payload, r)) {
       return showFailure(payload, meta, {
-        msg: r.msg, code: r.code, nonJSON: !!(payload && payload.__raw)
+        msg: r.msg, code: r.code, nonJSON: !!(payload && payload.__raw),
+        hint: meta && meta.failHint
       });
     }
     clearFailState();
@@ -820,8 +827,28 @@
   }
 
   /* ------------------------------------------------------------ 解析请求 */
-  function buildEndpoint() {
+  /**
+   * 实测：聚合端点 /api/short_videos 对 bilibili 链接一律返回 code=0「解析失败！」，
+   * 而专用端点 /api/bilibili 对同样的链接返回 code=200 + 真实 mp4 直链。
+   * 因此「自动识别」遇到 B 站域名时自动改道，用户无需手动切通道。
+   */
+  function isBilibiliUrl(u) {
+    return /(?:^|\/\/)(?:(?:www|m|mobile)\.)?bilibili\.com\//i.test(u || '') ||
+           /(?:^|\/\/)b23\.tv\//i.test(u || '');
+  }
+
+  // 纯 BV 号（B 站常见分享形式）补成完整播放页链接，上游只认完整 URL
+  function normalizeShareUrl(text) {
+    const raw = String(text || '').trim();
+    const u = extractUrl(raw);
+    if (u) return u;
+    if (/^BV[0-9A-Za-z]{8,12}$/i.test(raw)) return 'https://www.bilibili.com/video/' + raw;
+    return '';
+  }
+
+  function buildEndpoint(shareUrl) {
     if (selectedPlatform !== 'all' && CFG.platforms[selectedPlatform]) return CFG.platforms[selectedPlatform];
+    if (isBilibiliUrl(shareUrl)) return CFG.platforms.bilibili;
     return CFG.primary;
   }
 
@@ -897,18 +924,20 @@
     return { payload: payload, rawText: raw.slice(0, 20000), nonJSON: !!payload.__raw };
   }
 
-  async function doVideoParse(text) {
-    const shareUrl = extractUrl(text);
+  async function doVideoParse(text, retryCount) {
+    const attempt = retryCount || 0;
+    const shareUrl = normalizeShareUrl(text);
     if (!shareUrl) {
-      notify('err', '未检测到有效的 http/https 链接。请粘贴完整的分享链接或整段分享文案。');
+      notify('err', '未检测到有效的 http/https 链接。请粘贴完整的分享链接、整段分享文案，或直接粘贴 B 站 BV 号。');
       $('#urlInput').focus();
       return;
     }
     clearNotice();
     setLoading(true);
 
-    const endpoint = buildEndpoint();
-    const channel = currentChannelName();
+    const endpoint = buildEndpoint(shareUrl);
+    const autoBili = selectedPlatform === 'all' && endpoint === CFG.platforms.bilibili;
+    const channel = autoBili ? '自动识别 → 哔哩哔哩专用' : currentChannelName();
     const target = endpoint + '?url=' + encodeURIComponent(shareUrl) + '&_=' + Date.now();
     const ctrl = new AbortController();
     const timer = setTimeout(function () { ctrl.abort(); }, CFG.timeout);
@@ -918,10 +947,21 @@
       const ok = showResult(out.payload, {
         channel: channel,
         source: '通道：' + channel + ' · ' + endpoint.replace(/^https?:\/\//, '') + ' · ' + new Date().toLocaleTimeString('zh-CN', { hour12: false }),
-        rawText: out.nonJSON ? out.rawText : ''
+        rawText: out.nonJSON ? out.rawText : '',
+        failHint: isBilibiliUrl(shareUrl)
+          ? 'B 站链接已自动改走专用端点 /api/bilibili（聚合端点对 B 站无效）。若仍失败，通常是该视频不存在、已删除、会员 / 合集限制：请先在 B 站打开确认链接有效，或换一个 BV 号重试。'
+          : ''
       });
       if (ok !== false) saveHistory(text);
     } catch (err) {
+      // 上游偶发响应慢 / 中断（实测 B 站专用端点约 1/4 请求会超时），自动重试一次
+      const transient = err && (err.name === 'AbortError' ||
+        /Failed to fetch|NetworkError|Load failed/i.test(String(err.message)));
+      if (transient && attempt < 1) {
+        toast('上游响应较慢，正在自动重试一次');
+        await doVideoParse(text, attempt + 1);
+        return;
+      }
       reportError(err, target);
     } finally {
       clearTimeout(timer);
@@ -1021,7 +1061,7 @@
       b.type = 'button';
       b.textContent = v.length > 40 ? v.slice(0, 40) + '…' : v;
       b.title = v;
-      b.addEventListener('click', function () { $('#urlInput').value = v; toggleClear(); $('#urlInput').focus(); });
+      b.addEventListener('click', function () { $('#urlInput').value = v; toggleClear(); updateEndpointHint(v); $('#urlInput').focus(); });
       host.appendChild(b);
     });
   }
@@ -1033,24 +1073,28 @@
 
   function initParser() {
     const input = $('#urlInput');
-    input.addEventListener('input', toggleClear);
+    input.addEventListener('input', function () { toggleClear(); updateEndpointHint(input.value); });
     input.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') doParse(input.value);
     });
     $('#clearInput').addEventListener('click', function () {
       input.value = '';
       toggleClear();
+      updateEndpointHint('');
       input.focus();
       clearNotice();
     });
     $('#parseBtn').addEventListener('click', function () { doParse(input.value); });
 
-    $('#musicQuickLinks').addEventListener('click', function (e) {
-      const b = e.target.closest('[data-fill]');
-      if (!b) return;
-      input.value = b.dataset.fill;
-      toggleClear();
-      input.focus();
+    ['#musicQuickLinks', '#videoQuickLinks'].forEach(function (sel) {
+      $(sel).addEventListener('click', function (e) {
+        const b = e.target.closest('[data-fill]');
+        if (!b) return;
+        input.value = b.dataset.fill;
+        toggleClear();
+        updateEndpointHint(b.dataset.fill);
+        input.focus();
+      });
     });
 
     $('#demoVideoBtn').addEventListener('click', function () {
