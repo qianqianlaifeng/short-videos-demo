@@ -264,6 +264,32 @@ img { max-width: 100%; display: block; }
   background: var(--accent-soft); color: var(--accent-ink);
 }
 .tag.demo { background: var(--warn-soft); color: var(--warn); }
+.tag.fail { background: var(--danger-soft); color: var(--danger); }
+
+/* 失败态：不再套用成功结果模板，隐藏空媒体框与全「—」字段表 */
+.result.fail .result-grid { display: none; }
+.result.fail .json-wrap { margin-top: 18px; }
+.fail-panel {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 20px 22px; border-radius: 12px;
+  background: var(--danger-soft);
+  border: 1px solid color-mix(in srgb, var(--danger) 22%, transparent);
+}
+.fail-panel.hidden { display: none; }
+.fail-icon {
+  width: 38px; height: 38px; flex: none; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger);
+}
+.fail-icon svg { width: 20px; height: 20px; }
+.fail-body { min-width: 0; flex: 1; }
+.fail-body h4 { margin: 0 0 6px; font-size: 15px; color: var(--danger); }
+.fail-body p { margin: 0 0 6px; font-size: 13.5px; line-height: 1.65; color: var(--text-2); word-break: break-word; }
+.fail-body .fail-upstream { color: var(--text); font-weight: 500; }
+.fail-body .fail-hint { color: var(--muted); font-size: 12.5px; }
+.fail-actions { margin-top: 13px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fail-actions .muted { font-size: 12px; }
+
 .result-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 20px; }
 .media-box {
   background: var(--code-bg); border-radius: 12px; overflow: hidden; position: relative;

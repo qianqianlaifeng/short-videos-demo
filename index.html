@@ -40,6 +40,7 @@
   <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
   <symbol id="i-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
   <symbol id="i-lyric" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="11" x2="16" y2="11"/><line x1="4" y1="16" x2="18" y2="16"/><line x1="4" y1="21" x2="12" y2="21"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
 </svg>
 
 <!-- 导航 -->
@@ -160,10 +161,11 @@
 
         <div class="result hidden" id="resultHost">
           <div class="result-head">
-            <h3>解析结果 <span class="tag" id="resultTag">VIDEO</span></h3>
+            <h3><span id="resultTitle">解析结果</span> <span class="tag" id="resultTag">VIDEO</span></h3>
             <div class="muted" style="font-size:12px" id="resultSource"></div>
           </div>
           <div id="musicListHost"></div>
+          <div class="fail-panel hidden" id="failPanel"></div>
           <div class="result-grid">
             <div class="media-box" id="mediaBox"></div>
             <div class="info-panel" id="infoPanel"></div>

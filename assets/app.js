@@ -256,6 +256,7 @@
     toggleClear();
     clearNotice();
     $('#resultHost').classList.add('hidden');
+    clearFailState();
     $('#musicListHost').innerHTML = '';
     $('#mediaBox').innerHTML = '';
     $('#infoPanel').innerHTML = '';
@@ -621,8 +622,96 @@
     host.innerHTML = html;
   }
 
+  /* 失败态 --------------------------------------------------------------- */
+  function clearFailState() {
+    $('#resultHost').classList.remove('fail');
+    $('#failPanel').classList.add('hidden');
+    $('#resultTitle').textContent = '解析结果';
+    $('#resultTag').classList.remove('fail');
+    $('#mediaBox').style.background = '';
+    $('#mediaBox').style.padding = '';
+  }
+
+  /**
+   * 解析失败统一走这里，绝不套用成功结果模板。
+   * 之前的问题：失败响应（code=0 / msg=解析失败！）也渲染了视频卡片，
+   * 于是出现「（无标题）/ 未知作者 / 满屏 — / 黑色空媒体框」这种空壳。
+   * 现在只展示失败原因 + 可操作建议 + 上游原始响应（供排障）。
+   * 返回 false，调用方据此跳过「最近解析」记录。
+   */
+  function showFailure(payload, meta, detail) {
+    const root = (payload && typeof payload === 'object') ? payload : {};
+    const d = detail || {};
+    lastResult = payload;
+    lastRawText = (meta && meta.rawText) || JSON.stringify(payload, null, 2);
+
+    const rawMsg = String(d.msg || pick(root, ['msg', 'message', 'error', 'errmsg', 'reason']) || '');
+    const cleanMsg = rawMsg.replace(/[！!。.]+$/, '').trim();
+    const code = d.code !== undefined && d.code !== null ? d.code : pick(root, ['code', 'status', 'errno']);
+    const isRaw = !!(root.__raw || d.nonJSON);
+    const upstreamMsg = cleanMsg || (isRaw ? '上游返回了非 JSON 内容' : '接口未返回媒体数据');
+    const headline = '解析失败 · 未取得可播放内容';
+    const channel = (meta && meta.channel) || '自动识别';
+
+    $('#resultHost').classList.remove('hidden');
+    $('#resultHost').classList.add('fail');
+    $('#resultTitle').textContent = '解析失败';
+    const tagEl = $('#resultTag');
+    tagEl.textContent = 'FAILED';
+    tagEl.classList.remove('demo');
+    tagEl.classList.add('fail');
+    $('#resultSource').textContent = (meta && meta.source) ||
+      ('通道：' + channel + ' · ' + new Date().toLocaleTimeString('zh-CN', { hour12: false }));
+
+    $('#musicListHost').innerHTML = '';
+    $('#mediaBox').innerHTML = '';
+    $('#mediaBox').style.background = '';
+    $('#mediaBox').style.padding = '';
+    $('#infoPanel').innerHTML = '';
+
+    const hint = d.hint || '请确认链接有效、内容未下架或未被设为私密；也可在上方手动切换其他解析通道，或稍后重试。公益接口可能临时限流或维护。';
+    $('#failPanel').innerHTML =
+      '<div class="fail-icon">' + ICON('alert') + '</div>' +
+      '<div class="fail-body">' +
+        '<h4>' + esc(headline) + '</h4>' +
+        '<p class="fail-upstream"><b>上游返回：</b>' + esc(upstreamMsg) + '</p>' +
+        '<p>' + esc(hint) + '</p>' +
+        '<p class="fail-hint">通道：' + esc(channel) + ' · 响应码 ' +
+          esc(code === undefined || code === null || code === '' ? 'N/A' : code) +
+          ' · 上游原始响应已保留在下方，便于排查</p>' +
+        '<div class="fail-actions">' +
+          '<button class="btn-sm solid" type="button" id="failRetryBtn">' + ICON('refresh') + ' 重新解析</button>' +
+          '<span class="muted">可更换输入内容，或在上方手动切换解析通道</span>' +
+        '</div>' +
+      '</div>';
+    $('#failPanel').classList.remove('hidden');
+    $('#failRetryBtn').addEventListener('click', function () { $('#parseBtn').click(); });
+
+    $('#jsonFname').textContent = (meta && meta.channel) ? (meta.channel + ' · raw response') : 'raw response';
+    $('#jsonCode').innerHTML = highlightJSON(lastRawText);
+
+    const lead = (!cleanMsg || /^解析失败[！!]?$/.test(cleanMsg))
+      ? '接口未返回可播放的媒体数据'
+      : cleanMsg;
+    notify('err', '<strong>解析失败</strong><br>' + esc(lead) +
+      '<br>已跳过空白结果卡片，下方保留上游原始响应；可更换链接或在上方手动切换通道后重试。');
+    return false;
+  }
+
+  function isVideoFailure(payload, r) {
+    const hasMedia = !!(r.data.url || r.data.images.length || r.data.live_photo.length);
+    const badMsg = /失败|异常|错误|无法|不存在|已下架|付费|invalid|fail|error|not found/i.test(r.msg);
+    return !!(payload && payload.__raw) || !hasMedia || badMsg;
+  }
+
   function showResult(payload, meta) {
     const r = normalize(payload);
+    if (isVideoFailure(payload, r)) {
+      return showFailure(payload, meta, {
+        msg: r.msg, code: r.code, nonJSON: !!(payload && payload.__raw)
+      });
+    }
+    clearFailState();
     lastResult = payload;
     lastRawText = (meta && meta.rawText) || JSON.stringify(payload, null, 2);
 
@@ -639,10 +728,7 @@
     renderMedia(r.data);
     renderInfo(r.data);
     $('#jsonCode').innerHTML = highlightJSON(lastRawText);
-
-    if (r.code !== 200 || (!r.data.url && !r.data.images.length && !r.data.live_photo.length && !r.data.cover)) {
-      notify('warn', '接口返回 code=' + esc(r.code) + '：' + esc(r.msg || '未返回媒体数据') + '。请确认链接有效、内容未删除，或改用其他解析通道。');
-    }
+    return true;
   }
 
   /* 音乐结果 ------------------------------------------------------------ */
@@ -693,21 +779,24 @@
     if (lrc) {
       html += '<div class="lyric-box"><div class="lyric-head">' + ICON('lyric', 'width:13px;height:13px') + ' 歌词</div><pre>' + esc(lrc) + '</pre></div>';
     }
-    if (r.kind === 'error') {
-      html += '<div class="backup-list"><div class="muted">未解析出可播放内容</div><div>上游返回 code=' +
-        esc(r.code) + '：' + esc(r.msg || '无有效数据') + '。原始响应见下方 JSON。</div></div>';
-    }
     $('#infoPanel').innerHTML = html;
   }
 
   function showMusicResult(payload, meta) {
     const r = normalizeMusic(payload, meta.kind);
+    if (r.kind === 'error' || (payload && payload.__raw)) {
+      return showFailure(payload, meta, {
+        msg: r.msg, code: r.code, nonJSON: !!(payload && payload.__raw),
+        hint: '请确认歌曲链接 / ID 有效，或改用歌曲链接、纯 ID、歌名搜索重试；VIP / 付费 / 下架内容可能无法取得直链，也可切换其他音乐通道。'
+      });
+    }
+    clearFailState();
     lastResult = payload;
     lastRawText = meta.rawText || JSON.stringify(payload, null, 2);
 
     $('#resultHost').classList.remove('hidden');
     const tagEl = $('#resultTag');
-    tagEl.textContent = r.kind === 'search' ? 'SEARCH' : (r.kind === 'error' ? 'ERROR' : 'MUSIC');
+    tagEl.textContent = r.kind === 'search' ? 'SEARCH' : 'MUSIC';
     tagEl.classList.toggle('demo', !!meta.demo);
     $('#resultSource').textContent = meta.source || ('通道：' + meta.channel + ' · ' + new Date().toLocaleTimeString('zh-CN', { hour12: false }));
     $('#jsonFname').textContent = meta.channel + ' · raw response';
@@ -720,18 +809,14 @@
       $('#mediaBox').innerHTML = '<div class="media-placeholder">选择上方任一歌曲以获取音频直链</div>';
       $('#infoPanel').innerHTML = '<div class="empty">' + ICON('search') + '共找到 ' + r.songs.length + ' 首歌曲。点击「解析此曲」查看播放器、封面与歌词。</div>';
       if (!r.songs.length) notify('warn', '未找到匹配的歌曲，请更换关键词或直接使用歌曲链接 / ID。');
-      return;
+      return true;
     }
     $('#musicListHost').innerHTML = '';
     const s = r.songs[0] || {};
     renderMusicMedia(s);
     renderMusicInfo(s, r, meta.channel);
-    if (r.kind === 'error') {
-      notify('warn', '该通道未返回可播放内容：' + esc(r.msg || ('code=' + r.code)) +
-        '。上游偶尔限流或返回非 JSON，原始响应已保留在下方；可稍后重试或切换通道。');
-    } else if (!s.url) {
-      notify('warn', '接口返回了歌曲信息，但没有音频直链（常见于 VIP / 付费 / 风控内容）。');
-    }
+    if (!s.url) notify('warn', '接口返回了歌曲信息，但没有音频直链（常见于 VIP / 付费 / 风控内容）。');
+    return true;
   }
 
   /* ------------------------------------------------------------ 解析请求 */
@@ -830,12 +915,12 @@
 
     try {
       const out = await fetchJSON(target, ctrl);
-      showResult(out.payload, {
+      const ok = showResult(out.payload, {
         channel: channel,
         source: '通道：' + channel + ' · ' + endpoint.replace(/^https?:\/\//, '') + ' · ' + new Date().toLocaleTimeString('zh-CN', { hour12: false }),
         rawText: out.nonJSON ? out.rawText : ''
       });
-      saveHistory(text);
+      if (ok !== false) saveHistory(text);
     } catch (err) {
       reportError(err, target);
     } finally {
@@ -863,11 +948,11 @@
 
     try {
       const out = await fetchJSON(req.target, ctrl);
-      showMusicResult(out.payload, {
+      const ok = showMusicResult(out.payload, {
         channel: channel, source: source, kind: req.kind,
         rawText: out.nonJSON ? out.rawText : ''
       });
-      saveHistory(text);
+      if (ok !== false) saveHistory(text);
     } catch (err) {
       reportError(err, req.target);
     } finally {
