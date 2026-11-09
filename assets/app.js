@@ -417,21 +417,45 @@
     return [];
   }
 
-  function normalize(payload) {
+  /**
+   * 视频响应归一。注意 /api/bilibili 与聚合端点字段差异很大：
+   *  - 作者写在 data.auther（上游拼写如此）或 data.user.name
+   *  - 头像写在顶层 data.avatar / data.user.avatar
+   *  - 时长在 data.videos[i].duration(秒) / durationFormat("00:01:57")
+   *  - 分 P / 合集在 data.videos[] 与 data.totalVideos
+   * 这些扁平字段统一在这里吃进标准结构，避免「视频已播出但信息栏仍是未知作者 / 满屏 —」。
+   */
+  function normalize(payload, meta) {
     const root = (payload && typeof payload === 'object') ? payload : {};
     const rawData = root.data && typeof root.data === 'object' ? root.data : root;
     const d = rawData && typeof rawData === 'object' ? rawData : {};
 
-    const authorRaw = pick(d, ['author', 'creator', 'owner', 'user_info', 'userInfo', 'nickname', 'author_name']);
+    // 分 P / 合集（B 站专用端点）
+    const parts = Array.isArray(d.videos)
+      ? d.videos.filter(function (x) { return x && typeof x === 'object'; })
+      : [];
+    const firstPart = parts[0] || {};
+    const totalParts = Number(d.totalVideos || parts.length || 0) || 0;
+
+    const userObj = (d.user && typeof d.user === 'object') ? d.user : {};
+    const authorRaw = pick(d, ['author', 'auther', 'autor', 'creator', 'owner', 'user_info', 'userInfo',
+      'nickname', 'nick', 'uname', 'up_name', 'author_name']);
     let author = { name: '', id: '', avatar: '' };
     if (authorRaw && typeof authorRaw === 'object') {
       author = {
         name: String(pick(authorRaw, ['name', 'nickname', 'nick', 'uname', 'title']) || ''),
-        id: String(pick(authorRaw, ['id', 'uid', 'sec_uid', 'user_id']) || ''),
+        id: String(pick(authorRaw, ['id', 'uid', 'sec_uid', 'user_id', 'mid']) || ''),
         avatar: safeUrl(pick(authorRaw, ['avatar', 'avatar_url', 'head', 'icon', 'face']))
       };
     } else if (typeof authorRaw === 'string') {
       author.name = authorRaw;
+    }
+    // 作者名 / ID / 头像兜底（B 站 auther、user.name、顶层 avatar 并存）
+    if (!author.name) author.name = String(pick(userObj, ['name', 'nickname', 'uname']) || '');
+    if (!author.id && userObj.mid) author.id = String(userObj.mid);
+    if (!author.avatar) {
+      author.avatar = safeUrl(pick(d, ['avatar', 'face', 'head_url', 'avatar_url']) ||
+        pick(userObj, ['avatar', 'face', 'avatar_url']));
     }
 
     const musicRaw = pick(d, ['music', 'bgm', 'sound', 'song', 'music_info']);
@@ -454,8 +478,13 @@
       }).filter(function (x) { return x.image || x.video; });
     })();
 
-    const url = safeUrl(pick(d, ['url', 'video_url', 'play_url', 'play_addr', 'download_url', 'nwm_video_url', 'video', 'link', 'src']));
-    const backup = asArray(pick(d, ['video_backup', 'backups', 'backup_urls', 'beifeng', 'urls']));
+    const url = safeUrl(pick(d, ['url', 'video_url', 'play_url', 'play_addr', 'download_url', 'nwm_video_url', 'video', 'link', 'src']) ||
+      pick(firstPart, ['url', 'video_url', 'play_url']));
+    let backup = asArray(pick(d, ['video_backup', 'backups', 'backup_urls', 'beifeng', 'urls']));
+    // 多 P / 合集：上游没给备选直链时，把每个分 P 的直链列出来
+    if (!backup.length && parts.length > 1) {
+      backup = parts.map(function (p) { return safeUrl(pick(p, ['url', 'video_url', 'play_url'])); }).filter(Boolean);
+    }
     let type = String(pick(d, ['type', 'resource_type', 'leixing']) || '').toLowerCase();
     if (!type || ['unknown', ''].indexOf(type) >= 0) {
       if (livePhoto.length) type = 'live';
@@ -463,6 +492,18 @@
       else if (images.length) type = 'image';
       else type = 'unknown';
     }
+
+    // 时长：顶层没有时取分 P 的秒数；同时保留上游格式化文本（如 "00:01:57"）
+    let duration = pick(d, ['duration', 'duration_seconds', 'shichang']);
+    if (duration === '' || duration === undefined || duration === null) {
+      duration = pick(firstPart, ['duration', 'duration_seconds']);
+    }
+    const durationLabel = String(pick(firstPart, ['durationFormat', 'duration_format', 'duration_text']) ||
+      pick(d, ['durationFormat', 'duration_text', 'duration_label']) || '');
+
+    // VID：B 站响应不带 bvid，从输入的分享链接 / BV 号里补回来
+    const shareUrl = (meta && meta.shareUrl) || '';
+    const bv = String(shareUrl).match(/BV[0-9A-Za-z]{8,12}/);
 
     return {
       code: Number(pick(root, ['code', 'status', 'errno']) || (url || images.length ? 200 : 0)),
@@ -474,14 +515,17 @@
         author: author,
         cover: safeUrl(pick(d, ['cover', 'thumbnail', 'poster', 'thumb', 'cover_url', 'img'])),
         url: url,
-        quality: String(pick(d, ['quality', 'resolution', 'definition', 'video_quality', 'clarity']) || ''),
-        duration: pick(d, ['duration', 'duration_seconds', 'shichang']),
+        quality: String(pick(d, ['quality', 'resolution', 'definition', 'video_quality', 'clarity']) ||
+          pick(firstPart, ['quality', 'resolution', 'definition']) || ''),
+        duration: duration,
+        duration_label: durationLabel,
         size: Number(pick(d, ['size', 'video_size', 'filesize']) || 0),
         size_label: String(pick(d, ['size_label', 'size_text']) || ''),
         create_time: Number(pick(d, ['create_time', 'createTime', 'timestamp']) || 0),
         publish_time: String(pick(d, ['publish_time', 'publishTime', 'time']) || ''),
+        parts_count: totalParts,
         video_backup: backup,
-        video_id: String(pick(d, ['video_id', 'vid', 'aweme_id', 'id']) || ''),
+        video_id: String(pick(d, ['video_id', 'vid', 'aweme_id', 'id']) || (bv ? bv[0] : '')),
         images: images.map(safeUrl).filter(Boolean),
         live_photo: livePhoto,
         music: music
@@ -583,14 +627,17 @@
   function renderInfo(d) {
     const host = $('#infoPanel');
     const sizeText = d.size_label || fmtBytes(d.size);
-    const rows = [
+    let rows = [
       ['类型', esc((d.type || 'unknown').toUpperCase())],
       ['画质', esc(d.quality || '—')],
-      ['时长', esc(fmtDuration(d.duration))],
+      ['时长', esc(d.duration_label || fmtDuration(d.duration))],
       ['大小', esc(sizeText)],
       ['发布时间', esc(fmtTime(d.create_time, d.publish_time))],
       ['VID', esc(d.video_id || '—')]
     ];
+    if (d.parts_count > 1) rows.splice(3, 0, ['分P / 合集', esc('共 ' + d.parts_count + ' P')]);
+    // 上游没给的字段不渲染成「—」占位，避免信息栏变成一排空值
+    rows = rows.filter(function (r) { return r[1] && r[1] !== '—'; });
 
     let html = '';
     html += '<h4 class="info-title">' + esc(d.title || '（无标题）') + '</h4>';
@@ -711,7 +758,7 @@
   }
 
   function showResult(payload, meta) {
-    const r = normalize(payload);
+    const r = normalize(payload, meta);
     if (isVideoFailure(payload, r)) {
       return showFailure(payload, meta, {
         msg: r.msg, code: r.code, nonJSON: !!(payload && payload.__raw),
@@ -946,6 +993,7 @@
       const out = await fetchJSON(target, ctrl);
       const ok = showResult(out.payload, {
         channel: channel,
+        shareUrl: shareUrl,
         source: '通道：' + channel + ' · ' + endpoint.replace(/^https?:\/\//, '') + ' · ' + new Date().toLocaleTimeString('zh-CN', { hour12: false }),
         rawText: out.nonJSON ? out.rawText : '',
         failHint: isBilibiliUrl(shareUrl)
