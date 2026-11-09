@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <title>短视频去水印解析 · 在线演示 | short_videos API</title>
+  <meta name="description" content="基于 jiuhunwl/short_videos 开源解析接口的在线演示站：粘贴分享链接即可解析无水印视频、图集与实况，并附完整 API 目录与 v3 契约文档。">
+  <meta name="keywords" content="短视频去水印,抖音解析,快手解析,小红书解析,B站解析,图集解析,无水印直链,short_videos,API 演示">
+  <link rel="canonical" href="./">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230d9488'/%3E%3Cpath d='M25 19l22 13-22 13z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./assets/style.css">
+  <script defer src="./assets/data.js"></script>
+  <script defer src="./assets/app.js"></script>
+</head>
+<body>
+
+<!-- SVG 图标精灵 -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2.2c-3.34.72-4.04-1.42-4.04-1.42-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.96 0-1.32.47-2.4 1.24-3.24-.13-.3-.54-1.53.11-3.18 0 0 1.01-.32 3.3 1.24a11.5 11.5 0 0 1 6.01 0c2.29-1.56 3.3-1.24 3.3-1.24.65 1.65.24 2.88.12 3.18.77.84 1.23 1.92 1.23 3.24 0 4.63-2.8 5.65-5.48 5.95.43.37.82 1.1.82 2.22v3.29c0 .32.21.69.82.57A12 12 0 0 0 12 .3z"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+</svg>
+
+<!-- 导航 -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark"><svg><use href="#i-play"/></svg></span>
+      <span>SV Parser<small>SHORT VIDEOS API DEMO</small></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#parser">在线解析</a>
+      <a href="#platforms">支持平台</a>
+      <a href="#catalog">接口目录</a>
+      <a href="#docs">接口文档</a>
+      <a href="#deploy">部署说明</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn" id="themeToggle" title="切换主题" aria-label="切换主题"><svg><use href="#i-moon"/></svg></button>
+      <a class="btn-ghost-sm" href="https://github.com/jiuhunwl/short_videos" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:7px">
+        <svg style="width:15px;height:15px"><use href="#i-github"/></svg> 源码
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="top">
+  <div class="wrap hero-inner">
+    <span class="eyebrow"><span class="dot"></span> OPEN SOURCE · MIT · API v3</span>
+    <h1>短视频去水印解析<br><span class="grad">在线演示与接口目录</span></h1>
+    <p class="lead">
+      基于 <a href="https://github.com/jiuhunwl/short_videos" target="_blank" rel="noopener noreferrer">jiuhunwl/short_videos</a> 开源解析接口构建。
+      粘贴任意平台分享链接，即可获取无水印视频直链、图集原图、实况 Live Photo 与完整元数据；
+      响应遵循《视频解析统一 JSON 格式 3.0》契约。
+    </p>
+    <div class="hero-stats">
+      <div class="hstat"><b>20+</b><span>支持平台</span></div>
+      <div class="hstat"><b id="statApiCount">30</b><span>收录接口</span></div>
+      <div class="hstat"><b>0</b><span>构建依赖</span></div>
+      <div class="hstat"><b>100%</b><span>静态托管</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 解析演示台 -->
+<section class="section" id="parser">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">01 / LIVE PARSER</span>
+      <h2>在线解析演示台</h2>
+      <p>请求直接发往公共解析接口，浏览器端渲染返回结果。支持粘贴整段分享文案，系统会自动提取其中的链接。</p>
+    </div>
+
+    <div class="card parser">
+      <div class="parser-top">
+        <div class="parser-title"><span class="badge-num">01</span> 粘贴分享链接</div>
+        <div class="api-status">
+          <span class="state"><span class="dot"></span> 接口在线</span>
+          <span class="url mono">GET /api/short_videos?url=…</span>
+        </div>
+      </div>
+      <div class="parser-body">
+        <div class="input-row">
+          <label class="field" for="urlInput">
+            <svg><use href="#i-link"/></svg>
+            <input id="urlInput" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="粘贴分享链接或整段分享文案，例如：https://v.douyin.com/xxxx/">
+            <button class="clear" id="clearInput" type="button" title="清空" aria-label="清空"><svg><use href="#i-x"/></svg></button>
+          </label>
+          <button class="btn-primary" id="parseBtn" type="button">
+            <svg><use href="#i-zap"/></svg><span>开始解析</span>
+          </button>
+        </div>
+
+        <div class="chips" id="platformChips">
+          <span class="label">解析通道</span>
+          <span class="spacer"></span>
+          <button class="link-btn" id="demoVideoBtn" type="button">载入视频示例</button>
+          <button class="link-btn" id="demoImageBtn" type="button">载入图集示例</button>
+        </div>
+
+        <div class="hint-line">
+          <svg><use href="#i-info"/></svg>
+          <span>示例按钮载入的是内置静态数据，用于预览界面效果，不会发起真实解析请求。实际解析请使用真实分享链接。</span>
+        </div>
+
+        <div id="noticeHost"></div>
+        <div class="history hidden" id="historyHost"><span class="hlabel">最近解析</span></div>
+
+        <div class="result hidden" id="resultHost">
+          <div class="result-head">
+            <h3>解析结果 <span class="tag" id="resultTag">VIDEO</span></h3>
+            <div class="muted" style="font-size:12px" id="resultSource"></div>
+          </div>
+          <div class="result-grid">
+            <div class="media-box" id="mediaBox"></div>
+            <div class="info-panel" id="infoPanel"></div>
+          </div>
+          <div class="json-wrap">
+            <div class="json-bar">
+              <svg style="width:15px;height:15px;color:var(--accent)"><use href="#i-code"/></svg>
+              <span>原始响应 JSON</span>
+              <span class="fname">v3 contract</span>
+              <span class="spacer"></span>
+              <button class="btn-sm" id="copyJsonBtn" type="button"><svg><use href="#i-copy"/></svg> 复制</button>
+              <button class="btn-sm" id="downloadJsonBtn" type="button"><svg><use href="#i-download"/></svg> 下载</button>
+            </div>
+            <pre class="json-code" id="jsonCode"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 支持平台 -->
+<section class="section alt" id="platforms">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">02 / COVERAGE</span>
+      <h2>支持平台</h2>
+      <p>聚合入口自动识别来源平台；亦可手动指定单平台端点以缩短链路。抖音支持原画 302 解析，视频 / 图集 / 实况三类内容统一契约输出。</p>
+    </div>
+    <div class="platform-grid" id="platformGrid"></div>
+    <div class="note-box" style="margin-top:18px">
+      <strong>关于可用性的说明：</strong>各平台解析能力依赖上游接口，平台方策略调整可能导致个别通道临时失效；抖音主页批量解析需要登录 Cookie，属独立接口。此页为技术演示，不保证任何平台的长期可用性。
+    </div>
+  </div>
+</section>
+
+<!-- API 目录 -->
+<section class="section" id="catalog">
+  <div class="wrap">
+    <div class="sec-head sec-head-row">
+      <div>
+        <span class="kicker">03 / API CATALOG</span>
+        <h2>接口目录</h2>
+        <p>按 <a href="https://api.bugpk.com/" target="_blank" rel="noopener noreferrer">BugPk-Api</a> 演示站结构整理的接口快照，支持搜索与分类筛选。调用量等数字为静态展示值，非实时统计。</p>
+      </div>
+    </div>
+
+    <div class="catalog-toolbar">
+      <label class="search" for="catalogSearch">
+        <svg><use href="#i-search"/></svg>
+        <input id="catalogSearch" type="search" placeholder="搜索接口名称、描述或路径…" autocomplete="off">
+      </label>
+      <div class="filter-group" id="catalogFilters"></div>
+    </div>
+    <p class="catalog-meta" id="catalogMeta"></p>
+    <div class="catalog-grid" id="catalogGrid"></div>
+  </div>
+</section>
+
+<!-- 接口文档 -->
+<section class="section alt" id="docs">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">04 / DOCUMENTATION</span>
+      <h2>接口文档</h2>
+      <p>请求与响应契约来自 <a href="https://github.com/jiuhunwl/short_videos" target="_blank" rel="noopener noreferrer">short_videos</a> 仓库的《视频解析统一 JSON 格式 3.0》规范。</p>
+    </div>
+
+    <div class="arch-flow">
+      <span class="arch-node">浏览器 / GitHub Pages</span><span class="arch-arrow">→</span>
+      <span class="arch-node hl">GET api.bugpk.com/api/short_videos</span><span class="arch-arrow">→</span>
+      <span class="arch-node">聚合分发 sv.php</span><span class="arch-arrow">→</span>
+      <span class="arch-node">单平台 PHP 解析器</span><span class="arch-arrow">→</span>
+      <span class="arch-node">JSON v3 响应</span>
+    </div>
+
+    <div class="doc-grid">
+      <div class="card doc-card">
+        <h3><span class="idx">REQ</span> 请求规范</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>项</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>方法</td><td>GET</td></tr>
+              <tr><td>参数</td><td><code>url</code> · 字符串 · 必填 · 分享链接或含链接的整段分享文本</td></tr>
+              <tr><td>编码</td><td>URL 参数需 <code>encodeURIComponent</code> 编码</td></tr>
+              <tr><td>聚合端点</td><td><code>https://api.bugpk.com/api/short_videos</code></td></tr>
+              <tr><td>单平台</td><td><code>/api/douyin</code> · <code>/api/ksjx</code> · <code>/api/xhsjx</code> · <code>/api/bilibili</code> · <code>/api/toutiao</code></td></tr>
+              <tr><td>跨域</td><td>响应含 <code>Access-Control-Allow-Origin: *</code>，静态站点可直接调用</td></tr>
+              <tr><td>认证</td><td>免 Key（公益接口，请合理控制调用频率）</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3 style="margin-top:22px"><span class="idx">EX</span> 调用示例</h3>
+        <div class="tabs" id="codeTabs">
+          <button class="tab active" data-tab="curl" type="button">cURL</button>
+          <button class="tab" data-tab="js" type="button">JavaScript</button>
+          <button class="tab" data-tab="py" type="button">Python</button>
+        </div>
+        <div class="code-block">
+          <button class="copy" id="copyCodeBtn" type="button">复制</button>
+          <pre id="codeSample"></pre>
+        </div>
+      </div>
+
+      <div class="card doc-card">
+        <h3><span class="idx">RES</span> 响应契约 · 字段表</h3>
+        <div class="table-scroll" style="max-height:330px;overflow-y:auto">
+          <table>
+            <thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+            <tbody id="fieldsBody"></tbody>
+          </table>
+        </div>
+        <h3 style="margin-top:22px"><span class="idx">CODE</span> 状态码</h3>
+        <div class="status-list">
+          <div class="status-item"><code>200</code><span>解析成功</span></div>
+          <div class="status-item"><code>400</code><span>请求参数错误 / 链接格式错误</span></div>
+          <div class="status-item"><code>404</code><span>内容不存在</span></div>
+          <div class="status-item"><code>500</code><span>上游接口请求失败</span></div>
+        </div>
+        <div class="note-box">
+          <strong>直链 403：</strong>部分平台视频直链带防盗链校验，跨站播放可能失败。仓库提供 <code>api/svproxyurl.php</code> 与 <code>cf_sv_proxy/worker.js</code> 两种代理转发方案；本静态站不内置代理。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 部署说明 -->
+<section class="section" id="deploy">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">05 / DEPLOYMENT</span>
+      <h2>部署与后端说明</h2>
+      <p>GitHub Pages 仅托管静态资源，本页所有解析请求均在浏览器端直连公共接口。若需私有化后端，可在自有 PHP 主机或 Cloudflare Workers 上部署同一仓库。</p>
+    </div>
+    <div class="doc-grid">
+      <div class="card doc-card">
+        <h3><svg style="width:17px;height:17px;color:var(--accent)"><use href="#i-server"/></svg> 后端部署路径</h3>
+        <div class="steps">
+          <div class="step"><p><b>PHP 主机</b>：将 <code>short_videos</code> 仓库上传至站点根目录，PHP 8.0+ 并启用 curl / json 扩展，无需 Composer。访问 <code>/api/sv.php?url=…</code> 即可。</p></div>
+          <div class="step"><p><b>Cloudflare Workers</b>：部署 <code>api/douyin-cloudflare workers/workers.js</code>（抖音整合版），可获得边缘网络与更稳定的 CORS 行为。</p></div>
+          <div class="step"><p><b>403 代理</b>：部署 <code>cf_sv_proxy/worker.js</code>，用于转发带防盗链的视频直链。</p></div>
+          <div class="step"><p><b>切换前端端点</b>：修改 <code>assets/data.js</code> 中 <code>API_CONFIG.primary</code> 与 <code>API_CONFIG.platforms</code>，重新提交即生效。</p></div>
+        </div>
+      </div>
+      <div class="card doc-card">
+        <h3><svg style="width:17px;height:17px;color:var(--accent)"><use href="#i-github"/></svg> GitHub Pages 部署</h3>
+        <div class="steps">
+          <div class="step"><p>仓库根目录放置 <code>index.html</code>、<code>assets/</code> 与 <code>.nojekyll</code>；<code>.nojekyll</code> 用于避免 Jekyll 忽略下划线目录。</p></div>
+          <div class="step"><p>在仓库 <b>Settings → Pages</b> 中选择 <b>Deploy from a branch → main / root</b>，或使用仓库内置的 <code>.github/workflows/pages.yml</code> 工作流。</p></div>
+          <div class="step"><p>项目页访问路径为 <code>https://&lt;用户名&gt;.github.io/&lt;仓库名&gt;/</code>；若仓库命名为 <code>&lt;用户名&gt;.github.io</code>，则直接位于根域名。</p></div>
+          <div class="step"><p>全站相对路径引用，无构建步骤、无外部 CDN 依赖，可同时部署到任意静态托管服务。</p></div>
+        </div>
+        <div class="note-box">
+          <strong>合规提示：</strong>本页仅为接口技术演示。解析所得内容的著作权归原平台及权利人所有，请勿用于未授权的下载、分发或商业用途。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 页脚 -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>关于本站</h4>
+        <p>短视频去水印解析接口在线演示站。前端为纯静态实现，接口能力由开源项目 <b>jiuhunwl/short_videos</b> 与公益 API 平台提供，二者均为 MIT 许可。</p>
+      </div>
+      <div>
+        <h4>项目链接</h4>
+        <ul>
+          <li><a href="https://github.com/jiuhunwl/short_videos" target="_blank" rel="noopener noreferrer">后端源码 · short_videos ↗</a></li>
+          <li><a href="https://github.com/jiuhunwl/shortvideo-html" target="_blank" rel="noopener noreferrer">官方前端 · shortvideo-html ↗</a></li>
+          <li><a href="https://sv.bugpk.com/" target="_blank" rel="noopener noreferrer">官方演示站 · sv.bugpk.com ↗</a></li>
+          <li><a href="https://api.bugpk.com/" target="_blank" rel="noopener noreferrer">接口平台 · api.bugpk.com ↗</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>规范文档</h4>
+        <ul>
+          <li><a href="https://github.com/jiuhunwl/short_videos/blob/main/docs/%E8%A7%86%E9%A2%91%E8%A7%A3%E6%9E%90%E7%BB%9F%E4%B8%80JSON%E6%A0%BC%E5%BC%8F3.0.md" target="_blank" rel="noopener noreferrer">统一 JSON 格式 3.0（中文）↗</a></li>
+          <li><a href="https://github.com/jiuhunwl/short_videos/blob/main/docs/Unified-Video-Parsing-JSON-Format-3.0.md" target="_blank" rel="noopener noreferrer">Unified JSON Format 3.0 ↗</a></li>
+          <li><a href="https://github.com/jiuhunwl/short_videos/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License ↗</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="disclaimer">
+      免责声明：本站仅提供技术研究与接口示例，代码与页面仅用于学习交流和技术测试，不得用于任何非法用途。解析出的短视频、图集、音乐及相关素材，其著作权、邻接权及其他合法权益均归原平台及作品权利人所有。使用者应自行确保已获得必要授权，并在合法、合规、合理范围内使用相关内容；因使用本站产生的任何直接或间接后果，由使用者自行承担。
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 SV Parser Demo · Built for GitHub Pages · Zero dependencies</span>
+      <span>Data snapshot: 2026-11-09</span>
+    </div>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="图片预览">
+  <button class="close" id="lightboxClose" type="button" aria-label="关闭">×</button>
+  <img id="lightboxImg" src="" alt="预览图">
+</div>
+<div class="toast-host" id="toastHost" aria-live="polite"></div>
+
+</body>
+</html>
